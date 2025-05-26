@@ -25,13 +25,8 @@ namespace Uyg.API.Controllers
             LessonsRepository LessonsRepository,
             CourseRepository courseRepository,
             CategoryRepository categoryRepository,
-<<<<<<< Updated upstream
             IMapper mapper)
-=======
-        //AppUserRepository appUserRepository,
 
-        IMapper mapper)
->>>>>>> Stashed changes
         {
             _LessonsRepository = LessonsRepository;
             _courseRepository = courseRepository;
@@ -80,23 +75,9 @@ namespace Uyg.API.Controllers
             }
         }
 
-<<<<<<< Updated upstream
-        [HttpGet("{id}")]
-        public async Task<LessonsDto> GetById(int id)
-        {
-            var Lessons = await _LessonsRepository.Where(l => l.Id == id)
-                .Include(l => l.Category)
-                .Include(l => l.Course)
-                .FirstOrDefaultAsync();
 
-            if (Lessons == null)
-                return null;
 
-            return _mapper.Map<LessonsDto>(Lessons);
-        }
 
-=======
->>>>>>> Stashed changes
         [HttpPost]
         public async Task<ResultDto> Add([FromBody] LessonsDto model)
         {
@@ -117,20 +98,6 @@ namespace Uyg.API.Controllers
                 _result.Message = "Category not found";
                 return _result;
             }
-<<<<<<< Updated upstream
-=======
-            //var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            // Validate User exists
-            //var user = await _appuserRepository.GetByIdAsync(int.Parse(userIdClaim));
-
-            //if (user == null)
-            //{
-            //    _result.Status = false;
-            //    _result.Message = "User not found";
-            //    return _result;
-            //}
->>>>>>> Stashed changes
 
             var Lessons = _mapper.Map<Lessons>(model);
             Lessons.Created = DateTime.Now;

@@ -33,6 +33,13 @@ namespace uyg.UI.Controllers
             ViewBag.ApiBaseURL = ApiBaseURL;
             return View();
         }
+        [Route("Lessons")]
+        public IActionResult Lessons()
+        {
+            var ApiBaseURL = _configuration["ApiBaseURL"];
+            ViewBag.ApiBaseURL = ApiBaseURL;
+            return View();
+        }
 
         [Route("Products/{id}")]
         [Route("Products")]

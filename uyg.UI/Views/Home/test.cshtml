@@ -1,0 +1,89 @@
+﻿<div class="wrapper">
+    <!-- Main Header -->
+    <div class="main-header" data-background-color="blue">
+        <div class="logo-header">
+            <a href="/" class="logo text-white">KaiAdmin</a>
+            <button class="navbar-toggler sidenav-toggler ml-auto" type="button">
+                <span class="navbar-toggler-icon"><i class="icon-menu"></i></span>
+            </button>
+        </div>
+
+        <nav class="navbar navbar-header navbar-expand-lg">
+            <div class="container-fluid">
+                <ul class="navbar-nav topbar-nav ml-md-auto align-items-center">
+                    <li class="nav-item NotLogined">
+                        <a class="nav-link" href="/Login">Oturum Aç</a>
+                    </li>
+                    <li class="nav-item dropdown Logined" style="display: none;">
+                        <a class="dropdown-toggle profile-pic" data-toggle="dropdown" href="#" aria-expanded="false">
+                            <img src="~/kaiadmin-lite-1.2.0/assets/img/profile.jpg" alt="user-img"
+                                 width="36" class="img-circle">
+                            <span class="text-white ml-2" id="UserName">Kullanıcı</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user animated fadeIn">
+                            <a class="dropdown-item" href="/Profile">Profil Güncelle</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="#" id="logoutButton">Oturumu Kapat</a>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar sidebar-style-2">
+        <div class="sidebar-wrapper scrollbar-inner">
+            <div class="sidebar-content">
+                <ul class="nav nav-primary">
+                    <li class="nav-item @(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")">
+                        <a asp-action="Index"><i class="fas fa-home"></i><p>Ana Sayfa</p></a>
+                    </li>
+                    <li class="nav-item @(ViewContext.RouteData.Values["Action"].ToString() == "Categories" ? "active" : "")">
+                        <a asp-action="Categories"><i class="fas fa-list"></i><p>Kategoriler</p></a>
+                    </li>
+                    <li class="nav-item @(ViewContext.RouteData.Values["Action"].ToString() == "Courses" ? "active" : "")">
+                        <a asp-action="Courses"><i class="fas fa-list"></i><p>Kurslar</p></a>
+                    </li>
+                    <li class="nav-item @(ViewContext.RouteData.Values["Action"].ToString() == "Lessons" ? "active" : "")">
+                        <a asp-action="Lessons"><i class="fas fa-book"></i><p>Dersler</p></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Panel -->
+    <div class="main-panel">
+        <div class="content">
+            <div class="page-inner">
+                @RenderBody()
+            </div>
+        </div>
+
+        <footer class="footer">
+            <div class="container-fluid">
+                <div class="copyright text-center">
+                    <span>Copyright &copy; 2025</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>
+
+<!-- Logout Modal -->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Oturumu Kapat</h5>
+                <button class="close" type="button" data-dismiss="modal"><span>×</span></button>
+            </div>
+            <div class="modal-body">Oturum kapatılacak, onaylıyor musunuz?</div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">İptal</button>
+                <a class="btn btn-danger" id="Logout" href="/Logout">Oturumu Kapat</a>
+            </div>
+        </div>
+    </div>
+</div>
