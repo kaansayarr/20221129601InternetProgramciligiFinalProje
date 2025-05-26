@@ -1,0 +1,72 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<<<<<<< Updated upstream
+<!-- Page Heading -->
+<h1 class="h3 mb-4 text-gray-800">Ana Sayfa</h1>
+=======
+@section Scripts {
+    <script>
+
+        $(document).ready(function() {
+            var apiBaseUrl = "@ViewBag.ApiBaseURL";
+            if (localStorage.getItem("token") == "" || localStorage.getItem("token") == null) {
+                location.href = "/Login";
+                return false;
+            }
+            var token = localStorage.getItem("token");
+            // Fetch students data when page loads
+            loadStudents();
+
+            function loadStudents() {
+                $.ajax({
+                    url: 'https://localhost:7218/api/student',
+                    method: 'GET',
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    },
+                    success: function(response) {
+                        console.log(response,"response");
+                        // Clear existing table data
+                        $('#studentsTable tbody').empty();
+
+                        // Add each student to the table
+                        response.forEach(function(student) {
+                            var statusBadge = student.status ? 
+                                '<span class="badge badge-success">Aktif</span>' : 
+                                '<span class="badge badge-warning">Pasif</span>';
+
+                            var row = `
+                                <tr>
+
+                                    <td>
+                                        <div class="avatar avatar-sm">
+                                            <img src="~/kaiadmin-lite-1.2.0/assets/img/profile.jpg" alt="..." class="avatar-img rounded-circle">
+                                        </div>
+                                                <span class="ml-2">${student.name} ${student.surname}</span>
+                                    </td>
+                                    <td>${student.email}</td>
+                                    <td>${statusBadge}</td>
+                                </tr>
+                            `;
+                            $('#studentsTable tbody').append(row);
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching students:', error);
+                        // Show error message to user
+                        $('#studentsTable tbody').html(`
+                            <tr>
+                                <td colspan="3" class="text-center text-danger">
+                                    Öğrenci verileri yüklenirken bir hata oluştu.
+                                </td>
+                            </tr>
+                        `);
+                    }
+                });
+            }
+        });
+    </script>
+}
+>>>>>>> Stashed changes

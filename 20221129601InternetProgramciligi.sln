@@ -1,0 +1,30 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OguzKaanErdogdu", "Uyg.API\OguzKaanErdogdu.csproj", "{7150E0AA-0450-41C8-9FEC-5CD84962E338}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Uyg.UI", "Uyg.UI\uyg.UI.csproj", "{A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7150E0AA-0450-41C8-9FEC-5CD84962E338}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7150E0AA-0450-41C8-9FEC-5CD84962E338}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7150E0AA-0450-41C8-9FEC-5CD84962E338}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7150E0AA-0450-41C8-9FEC-5CD84962E338}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DB0D9F6F-EC1B-463A-ABB9-2D024BA4CB03}
+	EndGlobalSection
+EndGlobal

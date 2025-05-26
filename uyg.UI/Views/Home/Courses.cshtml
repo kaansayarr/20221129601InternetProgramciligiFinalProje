@@ -1,0 +1,578 @@
+﻿
+@{
+    ViewData["Title"] = "Kurslar";
+}
+
+<div class="row">
+    <div class="col-md-8" id ="divList">
+        <div class="card">
+            <div class="card-header">
+                <h3>Kurslar</h3>
+            </div>
+            <div class="card-body">
+
+                <table class="table" id="tbCourseList">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Adı</th>
+                            <th>Açıklama</th>
+                            <th>Fiyat</th>
+                            <th>Durumu</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+
+            </div>
+            <div class="card-footer"></div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header"><h4>Kurs Ekle - Güncelle</h4></div>
+            <div class="card-body">
+                <input type="hidden" id="txtId" />
+                <div class="form-group">
+                    <label>Kurs Adı</label>
+                    <input type="text" class="form-control" id="txtName" />
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select class="form-control" id="cbCategoryId">
+                        <option value="">Seçiniz</option>
+                    </select>
+                </div>
+                <div class="card mt-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Dersler</h5>
+                        <button type="button" class="btn btn-primary btn-sm" id="btnAddLesson">
+                            <i class="fa fa-plus"></i> Yeni Ders Ekle
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div id="lessonsList">
+                            <!-- Dersler buraya dinamik olarak eklenecek -->
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Fiyat (₺)</label>
+                    <div class="input-group">
+                        <input type="number"
+                               class="form-control"
+                               id="txtPrice"
+                               step="0.01"
+                               min="0"
+                               placeholder="0.00">
+                        <div class="input-group-append">
+                            <span class="input-group-text">₺</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Açıklama</label>
+                    <textarea class="form-control" id="txtDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="cbIsActive" /> Aktif</label>
+                </div>
+                <div class="form-group text-right">
+                    <button class="btn btn-primary btn-circle" title="Kaydet" id="btnSave">
+                        <i class="fa fa-save"></i> Kaydet
+                    </button>
+                    <button class="btn btn-warning btn-circle" title="Güncelle" id="btnEdit">
+                        <i class="fa fa-edit"></i> Güncelle
+                    </button>
+                    <button class="btn btn-danger btn-circle" title="Sil" id="btnDelete">
+                        <i class="fa fa-trash"></i> Sil
+                    </button>
+                    <button class="btn btn-secondary btn-circle" title="Vazgeç" id="btnCancel">
+                        <i class="fa fa-arrow-left"></i> Vazgeç
+                    </button>
+                </div>
+                <div class="alert mt-3" id="divResult" style="display:none"></div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="lessonModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Ders Ekle/Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="modalLessonId">
+                    <div class="mb-3">
+                        <label class="form-label">Ders Adı</label>
+                        <input type="text" class="form-control" id="modalLessonName">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select class="form-control" id="modalCategoryId">
+                            <option value="">Seçiniz</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="modalLessonDescription" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveLesson">Kaydet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            console.log("✅ Course.cshtml script başladı.");
+
+            const apiBaseUrl = "@ViewBag.ApiBaseURL" || "https://localhost:7218/api";
+            const token = localStorage.getItem("token");
+            let courseLessons = []; // Dersleri tutacak array
+
+            if (!token) {
+                console.error("Token bulunamadı. Login sayfasına yönlendiriliyor.");
+                location.href = "/Login";
+                return;
+            }
+
+            // Sayfa yüklendiğinde
+            $("#btnCancel, #btnEdit, #btnDelete").hide();
+            GetCategoryList();
+            GetCourseList();
+
+            // Kurs Listesi
+            function GetCourseList() {
+                console.log("📋 Kurs listesi getiriliyor...");
+                $.ajax({
+                    url: `${apiBaseUrl}/Course`,
+                    type: "GET",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    success: function (d) {
+                        console.log("✅ API'den gelen kurs verileri:", d);
+                        let row = "";
+                        $.each(d, (i, item) => {
+                            const statusClass = item.isActive ? 'bg-success' : 'bg-danger';
+                            const statusLabel = item.isActive ? 'Aktif' : 'Pasif';
+                            row += `<tr>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.description || '-'}</td>
+                                <td>${formatPrice(item.price)}</td>
+                                <td><span class='text-white badge ${statusClass}'>${statusLabel}</span></td>
+                                <td>
+                                    <button class='btn btn-warning btn-circle btnEdit' data-id='${item.id}'>
+                                        <i class='fa fa-edit'></i>
+                                    </button>
+                                    <button class='btn btn-danger btn-circle btnDelete' data-id='${item.id}'>
+                                        <i class='fa fa-trash'></i>
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
+                        $("#tbCourseList tbody").html(row);
+                    },
+                    error: function (xhr) {
+                        handleAjaxError(xhr, "Kurs listesi alma");
+                    }
+                });
+            }
+
+
+            // Kategori Listesi
+            function GetCategoryList() {
+                $.ajax({
+                    url: `${apiBaseUrl}/Category`,
+                    type: "GET",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    success: function (d) {
+                        let options = "<option value=''>Seçiniz</option>";
+                        $.each(d, (i, item) => {
+                            options += `<option value="${item.id}">${item.name}</option>`;
+                        });
+                        $("#cbCategoryId").html(options);
+                    },
+                    error: function (e) {
+                        console.error("❌ Kategori listesi alınamadı", e);
+                    }
+                });
+            }
+
+            // Modal için kategori yükleme
+            function loadCategoriesForModal() {
+                $.ajax({
+                    url: `${apiBaseUrl}/Category`,
+                    type: "GET",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    success: function (data) {
+                        console.log("✅ Modal için kategoriler yüklendi:", data);
+                        let options = "<option value=''>Seçiniz</option>";
+                        $.each(data, (i, item) => {
+                            options += `<option value="${item.id}">${item.name}</option>`;
+                        });
+                        $("#modalCategoryId").html(options);
+                    },
+                    error: function (xhr) {
+                        console.error("❌ Modal için kategori listesi alınamadı:", xhr);
+                        showAlert("Kategoriler yüklenemedi!", "danger");
+                    }
+                });
+            }
+            $(document).on("click", ".btnEdit", function () {
+                const id = $(this).data("id");
+                console.log("📝 Kurs düzenleme başlatılıyor, ID:", id);
+
+                // Önce kurs detaylarını al
+                $.ajax({
+                    url: `${apiBaseUrl}/Course/${id}`,
+                    type: "GET",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    success: function (course) {
+                        console.log("✅ Kurs detayı alındı:", course);
+
+                        // Form alanlarını doldur
+                        $("#txtId").val(course.id);
+                        $("#txtName").val(course.name);
+                        $("#txtDescription").val(course.description);
+                        $("#txtPrice").val(course.price);
+                        $("#cbIsActive").prop("checked", course.isActive);
+                        $("#cbCategoryId").val(course.categoryId);
+
+                        // Dersleri al
+                        $.ajax({
+                            url: `${apiBaseUrl}/Course/${id}/Lessons`,
+                            type: "GET",
+                            headers: { "Authorization": `Bearer ${token}` },
+                            success: function (lessons) {
+                                console.log("✅ Kursun dersleri alındı:", lessons);
+                                courseLessons = lessons;
+                                refreshLessonsList();
+                            },
+                            error: function (xhr) {
+                                handleAjaxError(xhr, "Ders listesi alma");
+                            }
+                        });
+
+                        // Butonları göster/gizle
+                        $("#btnSave").hide();
+                        $("#btnEdit, #btnDelete, #btnCancel").show();
+                    },
+                    error: function (xhr) {
+                        handleAjaxError(xhr, "Kurs detayı alma");
+                    }
+                });
+            });
+
+            // Kurs güncelleme butonu tıklama olayı
+            $("#btnEdit").click(function () {
+                if (!validateForm()) return;
+
+                const id = $("#txtId").val();
+                const model = {
+                    id: parseInt(id),
+                    name: $("#txtName").val().trim(),
+                    description: $("#txtDescription").val().trim(),
+                    price: parseFloat($("#txtPrice").val()) || 0,
+                    isActive: $("#cbIsActive").is(":checked"),
+                    photoUrl: "https://via.placeholder.com/150",
+                    lessons: courseLessons.map(lesson => ({
+                        id: lesson.id,
+                        name: lesson.name,
+                        description: lesson.description || "",
+                        videoUrl: lesson.videoUrl || "https://example.com/default-video.mp4",
+                        photoUrl: lesson.photoUrl || "https://via.placeholder.com/150",
+                        price: lesson.price || 0,
+                        categoryId: lesson.categoryId,
+                        isActive: lesson.isActive
+                    }))
+                };
+
+                console.log("📝 Güncellenecek veri:", model);
+
+                $.ajax({
+                    url: `${apiBaseUrl}/Course`,
+                    type: "PUT",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    data: JSON.stringify(model),
+                    success: function (response) {
+                        if (response.status) {
+                            showAlert("✅ " + response.message, "success");
+                            GetCourseList();
+                            ClearForm();
+                        } else {
+                            showAlert("❌ " + response.message, "danger");
+                        }
+                    },
+                    error: function (xhr) {
+                        handleAjaxError(xhr, "Güncelleme");
+                    }
+                });
+            });
+
+            // Kurs silme butonu tıklama olayı
+            $(document).on("click", ".btnDelete", function () {
+                const id = $(this).data("id") || $("#txtId").val();
+                const courseName = $("#txtName").val();
+
+                if (!confirm(`"${courseName}" kursunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz ve kurstaki tüm dersler silinecektir!`)) {
+                    return;
+                }
+
+                console.log("🗑️ Kurs siliniyor, ID:", id);
+
+                $.ajax({
+                    url: `${apiBaseUrl}/Course/${id}`,
+                    type: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` },
+                    success: function (response) {
+                        if (response.status) {
+                            showAlert("✅ Kurs başarıyla silindi", "success");
+                            GetCourseList();
+                            ClearForm();
+                        } else {
+                            showAlert("❌ " + response.message, "danger");
+                        }
+                    },
+                    error: function (xhr) {
+                        handleAjaxError(xhr, "Silme");
+                    }
+                });
+            });
+
+            // İptal butonu tıklama olayı
+            $("#btnCancel").click(function () {
+                ClearForm();
+            });
+
+            // Event Handlers
+            $("#btnSave").click(function () {
+                if (!validateForm()) return;
+
+                const model = {
+                    name: $("#txtName").val().trim(),
+                    description: $("#txtDescription").val().trim(),
+                    price: parseFloat($("#txtPrice").val()) || 0,
+                    isActive: true,
+                    photoUrl: "https://via.placeholder.com/150",
+                    lessons: courseLessons.map(lesson => ({
+                        name: lesson.name,
+                        description: lesson.description || "",
+                        videoUrl: "https://example.com/default-video.mp4",
+                        photoUrl: "https://via.placeholder.com/150",
+                        price: 0,
+                        categoryId: lesson.categoryId,
+                        isActive: true
+                    }))
+                };
+
+                console.log("📦 Gönderilecek veri:", model);
+
+                $.ajax({
+                    url: `${apiBaseUrl}/Course`,
+                    type: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    data: JSON.stringify(model),
+                    success: function (response) {
+                        if (response.status) {
+                            showAlert("✅ " + response.message, "success");
+                            GetCourseList();
+                            ClearForm();
+                        } else {
+                            showAlert("❌ " + response.message, "danger");
+                        }
+                    },
+                    error: function (xhr) {
+                        handleAjaxError(xhr, "Kaydetme");
+                    }
+                });
+            });
+
+            $("#btnAddLesson").click(function () {
+                loadCategoriesForModal();
+                clearLessonModal();
+                $("#lessonModal").modal('show');
+            });
+
+            $("#btnSaveLesson").click(function () {
+                if (!validateLessonForm()) return;
+
+                const lesson = {
+                    id: $("#modalLessonId").val() ? parseInt($("#modalLessonId").val()) : -1,
+                    name: $("#modalLessonName").val().trim(),
+                    description: $("#modalLessonDescription").val().trim(),
+                    categoryId: parseInt($("#modalCategoryId").val()),
+                    categoryName: $("#modalCategoryId option:selected").text(),
+                    videoUrl: "https://example.com/default-video.mp4",
+                    photoUrl: "https://via.placeholder.com/150",
+                    price: 0,
+                    isActive: true
+                };
+
+                const existingIndex = courseLessons.findIndex(l => l.id === lesson.id);
+                if (existingIndex > -1) {
+                    courseLessons[existingIndex] = lesson;
+                } else {
+                    courseLessons.push(lesson);
+                }
+
+                refreshLessonsList();
+                $("#lessonModal").modal('hide');
+                showAlert("✅ Ders başarıyla eklendi", "success");
+            });
+
+            // Ders düzenleme ve silme için event handler'lar
+            $(document).on("click", ".btnEditLesson", function () {
+                const lessonId = $(this).data("id");
+                const lesson = courseLessons.find(l => l.id === lessonId);
+                if (lesson) {
+                    loadCategoriesForModal();
+                    $("#modalLessonId").val(lesson.id);
+                    $("#modalLessonName").val(lesson.name);
+                    $("#modalLessonDescription").val(lesson.description);
+                    $("#modalCategoryId").val(lesson.categoryId);
+                    $("#lessonModal").modal('show');
+                }
+            });
+
+            $(document).on("click", ".btnDeleteLesson", function () {
+                if (!confirm("Bu dersi silmek istediğinizden emin misiniz?")) return;
+
+                const lessonId = $(this).data("id");
+                courseLessons = courseLessons.filter(l => l.id !== lessonId);
+                refreshLessonsList();
+                showAlert("✅ Ders başarıyla silindi", "success");
+            });
+
+            // Yardımcı Fonksiyonlar
+            function validateForm() {
+                if (!$("#txtName").val().trim()) {
+                    showAlert("Kurs adı zorunludur!", "danger");
+                    return false;
+                }
+                if (courseLessons.length === 0) {
+                    showAlert("En az bir ders eklemelisiniz!", "danger");
+                    return false;
+                }
+                return true;
+            }
+
+            function validateLessonForm() {
+                const name = $("#modalLessonName").val().trim();
+                const categoryId = $("#modalCategoryId").val();
+
+                if (!name) {
+                    showAlert("Ders adı zorunludur!", "danger");
+                    $("#modalLessonName").focus();
+                    return false;
+                }
+
+                if (!categoryId) {
+                    showAlert("Kategori seçimi zorunludur!", "danger");
+                    $("#modalCategoryId").focus();
+                    return false;
+                }
+
+                return true;
+            }
+
+            function ClearForm() {
+                $("#txtId").val("");
+                $("#txtName").val("");
+                $("#txtDescription").val("");
+                $("#txtPrice").val("");
+                courseLessons = [];
+                refreshLessonsList();
+                $("#btnSave").show();
+                $("#btnEdit, #btnDelete, #btnCancel").hide();
+            }
+
+            function clearLessonModal() {
+                $("#modalLessonId").val("");
+                $("#modalLessonName").val("");
+                $("#modalLessonDescription").val("");
+                $("#modalCategoryId").val("");
+            }
+
+            function showAlert(message, type) {
+                $("#divResult")
+                    .removeClass()
+                    .addClass(`alert alert-${type}`)
+                    .html(message)
+                    .show();
+                setTimeout(() => $("#divResult").fadeOut(), 3000);
+            }
+
+            function handleAjaxError(xhr, operation) {
+                console.error(`❌ ${operation} hatası:`, xhr);
+                let errorMessage = "Bir hata oluştu";
+
+                try {
+                    if (xhr.responseText) {
+                        const response = JSON.parse(xhr.responseText);
+                        errorMessage = response.message || response.title || `${operation} başarısız`;
+                    }
+                } catch (e) {
+                    console.error("Hata yanıtı parse edilemedi:", e);
+                    errorMessage = xhr.statusText || errorMessage;
+                }
+
+                showAlert(`❌ ${errorMessage}`, "danger");
+            }
+
+            function formatPrice(price) {
+                return new Intl.NumberFormat('tr-TR', {
+                    style: 'currency',
+                    currency: 'TRY'
+                }).format(price || 0);
+            }
+
+            function refreshLessonsList() {
+                let html = '';
+                if (courseLessons.length === 0) {
+                    html = '<div class="alert alert-info">Henüz ders eklenmemiş.</div>';
+                } else {
+                    courseLessons.forEach(lesson => {
+                        html += `
+                            <div class="card mb-2">
+                                <div class="card-body">
+                                    <h6 class="mb-1">${lesson.name}</h6>
+                                    <div class="small text-muted">Kategori: ${lesson.categoryName}</div>
+                                    <p class="small mb-2">${lesson.description || ''}</p>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-warning btnEditLesson" data-id="${lesson.id}">
+                                            <i class="fa fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger btnDeleteLesson" data-id="${lesson.id}">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                $("#lessonsList").html(html);
+            }
+        });
+
+</script>
+}
+
